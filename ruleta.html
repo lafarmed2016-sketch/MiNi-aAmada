@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿A dónde iré con mi niña bonita?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d0a0a, #4a0e2e, #1a0520);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Corazones flotantes de fondo */
+        .hearts-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            animation: floatHeart linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+            text-align: center;
+            text-shadow: 2px 2px 8px rgba(255, 50, 100, 0.5);
+            color: #ffccd5;
+        }
+
+        .subtitulo {
+            font-size: 1.1rem;
+            color: #ff8fa3;
+            margin-bottom: 30px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        canvas {
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(255, 100, 150, 0.4), 0 0 80px rgba(255, 50, 100, 0.2);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 35px solid #ff2d55;
+            filter: drop-shadow(0 2px 8px rgba(255, 45, 85, 0.8));
+            z-index: 10;
+        }
+
+        .btn-girar {
+            padding: 15px 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff2d55, #ff6b8a);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 20px rgba(255, 45, 85, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .btn-girar:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 30px rgba(255, 45, 85, 0.7);
+        }
+
+        .btn-girar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .resultado {
+            font-size: 1.5rem;
+            min-height: 50px;
+            text-align: center;
+            padding: 15px 30px;
+            background: rgba(255, 100, 150, 0.15);
+            border: 1px solid rgba(255, 150, 180, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.5s;
+            color: #ffccd5;
+        }
+
+        .resultado.visible {
+            opacity: 1;
+        }
+
+        .opciones {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        .opcion {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 100, 150, 0.15);
+            border: 1px solid rgba(255, 150, 180, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .opcion:hover {
+            background: rgba(255, 100, 150, 0.3);
+            border-color: rgba(255, 150, 180, 0.5);
+        }
+
+        .opcion input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #ff2d55;
+        }
+
+        .opcion label {
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #ffd6e0;
+        }
+
+        @media (max-width: 500px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+            canvas {
+                width: 300px;
+                height: 300px;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Corazones de fondo -->
+    <div class="hearts-bg" id="heartsBg"></div>
+
+    <div class="content">
+        <h1>💕 ¿A dónde iré con mi niña bonita el próximo viernes? 💕</h1>
+        <p class="subtitulo">~ Deja que el destino decida nuestra aventura ~</p>
+
+        <div class="container">
+            <div class="opciones" id="opciones"></div>
+
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <canvas id="ruleta" width="400" height="400"></canvas>
+            </div>
+
+            <button class="btn-girar" id="btnGirar" onclick="girarRuleta()">💖 ¡GIRAR! 💖</button>
+
+            <div class="resultado" id="resultado"></div>
+        </div>
+    </div>
+
+    <script>
+        // Crear corazones flotantes de fondo
+        function crearCorazones() {
+            const contenedor = document.getElementById("heartsBg");
+            const corazones = ["💕", "💖", "💗", "💓", "💘", "💝", "❤️", "🩷", "♥"];
+            const cantidad = 35;
+
+            for (let i = 0; i < cantidad; i++) {
+                const heart = document.createElement("span");
+                heart.className = "heart";
+                heart.textContent = corazones[Math.floor(Math.random() * corazones.length)];
+                heart.style.left = Math.random() * 100 + "%";
+                heart.style.fontSize = (15 + Math.random() * 25) + "px";
+                heart.style.animationDuration = (8 + Math.random() * 12) + "s";
+                heart.style.animationDelay = (Math.random() * 15) + "s";
+                contenedor.appendChild(heart);
+            }
+        }
+
+        const destinos = [
+            { nombre: "Lunahuaná, Cañete", color: "#e74c3c" },
+            { nombre: "Islas Ballestas, Pisco", color: "#c0392b" },
+            { nombre: "La Oroya", color: "#d63384" },
+            { nombre: "Marcona", color: "#e91e63" },
+            { nombre: "Ica", color: "#9b59b6" }
+        ];
+
+        let destinosActivos = [...destinos];
+        let girando = false;
+        let anguloActual = 0;
+
+        const canvas = document.getElementById("ruleta");
+        const ctx = canvas.getContext("2d");
+        const btnGirar = document.getElementById("btnGirar");
+        const resultadoDiv = document.getElementById("resultado");
+
+        function crearOpciones() {
+            const contenedor = document.getElementById("opciones");
+            contenedor.innerHTML = "";
+            destinos.forEach((destino, i) => {
+                const div = document.createElement("div");
+                div.className = "opcion";
+                div.innerHTML = `
+                    <input type="checkbox" id="chk${i}" checked onchange="actualizarDestinos()">
+                    <label for="chk${i}">💗 ${destino.nombre}</label>
+                `;
+                contenedor.appendChild(div);
+            });
+        }
+
+        function actualizarDestinos() {
+            destinosActivos = [];
+            destinos.forEach((destino, i) => {
+                const chk = document.getElementById(`chk${i}`);
+                if (chk.checked) {
+                    destinosActivos.push(destino);
+                }
+            });
+            dibujarRuleta();
+        }
+
+        function dibujarRuleta() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radio = canvas.width / 2 - 10;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (destinosActivos.length === 0) {
+                ctx.fillStyle = "#333";
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radio, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#fff";
+                ctx.font = "16px Segoe UI";
+                ctx.textAlign = "center";
+                ctx.fillText("Selecciona al menos un destino", centerX, centerY);
+                return;
+            }
+
+            const anguloPorSeccion = (Math.PI * 2) / destinosActivos.length;
+
+            destinosActivos.forEach((destino, i) => {
+                const anguloInicio = anguloActual + i * anguloPorSeccion;
+                const anguloFin = anguloInicio + anguloPorSeccion;
+
+                // Dibujar seccion
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radio, anguloInicio, anguloFin);
+                ctx.closePath();
+
+                // Gradiente para cada seccion
+                const grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radio);
+                grad.addColorStop(0, "#ff6b8a");
+                grad.addColorStop(1, destino.color);
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Texto
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(anguloInicio + anguloPorSeccion / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 13px Segoe UI";
+                ctx.shadowColor = "rgba(0,0,0,0.7)";
+                ctx.shadowBlur = 4;
+
+                ctx.fillText(destino.nombre, radio - 20, 5);
+                ctx.restore();
+            });
+
+            // Centro con corazon
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+            const centroGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 25);
+            centroGrad.addColorStop(0, "#ff6b8a");
+            centroGrad.addColorStop(1, "#c0392b");
+            ctx.fillStyle = centroGrad;
+            ctx.fill();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Corazon en el centro
+            ctx.font = "18px serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff";
+            ctx.fillText("💖", centerX, centerY);
+        }
+
+        function girarRuleta() {
+            if (girando || destinosActivos.length < 2) {
+                if (destinosActivos.length < 2) {
+                    alert("Selecciona al menos 2 destinos para girar la ruleta 💕");
+                }
+                return;
+            }
+
+            girando = true;
+            btnGirar.disabled = true;
+            resultadoDiv.classList.remove("visible");
+
+            const vueltas = 5 + Math.random() * 5;
+            const anguloFinal = vueltas * Math.PI * 2 + Math.random() * Math.PI * 2;
+            const duracion = 4000;
+            const inicio = performance.now();
+            const anguloInicial = anguloActual;
+
+            function animar(timestamp) {
+                const progreso = Math.min((timestamp - inicio) / duracion, 1);
+                const ease = 1 - Math.pow(1 - progreso, 3);
+                anguloActual = anguloInicial + anguloFinal * ease;
+
+                dibujarRuleta();
+
+                if (progreso < 1) {
+                    requestAnimationFrame(animar);
+                } else {
+                    girando = false;
+                    btnGirar.disabled = false;
+                    mostrarResultado();
+                }
+            }
+
+            requestAnimationFrame(animar);
+        }
+
+        function mostrarResultado() {
+            const anguloPorSeccion = (Math.PI * 2) / destinosActivos.length;
+            const anguloNormalizado = (((-anguloActual - Math.PI / 2) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            const indice = Math.floor(anguloNormalizado / anguloPorSeccion);
+            const ganador = destinosActivos[indice];
+
+            resultadoDiv.innerHTML = `💘 ¡Nos vamos a: <strong>${ganador.nombre}</strong>! 💘<br><span style="font-size: 0.9rem; opacity: 0.8;">Será una cita increíble 💕</span>`;
+            resultadoDiv.classList.add("visible");
+        }
+
+        // Inicializar
+        crearCorazones();
+        crearOpciones();
+        dibujarRuleta();
+    </script>
+</body>
+</html>
